@@ -8,6 +8,14 @@ Financial analysts spend countless hours manually reviewing earnings call transc
 
 > **Full Guide:** For detailed architecture, business impact, and use cases, see the [Snowflake Developers Guide](https://www.snowflake.com/en/developers/guides/quantitative-research-with-ai-functions-and-cortex-code/).
 
+## Built By
+
+**Harry Yu**  
+Senior Data Scientist, Finance | Snowflake  
+📧 [h.yu@snowflake.com](mailto:h.yu@snowflake.com) | 💻 [GitHub](https://github.com/sfc-gh-harryu)
+
+---
+
 ## What You Will Learn
 - How to use **Cortex Code** to build entire ML pipelines through natural language
 - How to extract structured insights from unstructured text using `AI_COMPLETE()`
