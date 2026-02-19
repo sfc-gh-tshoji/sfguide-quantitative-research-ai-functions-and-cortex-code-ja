@@ -1,28 +1,27 @@
 -- Copyright 2026 Snowflake Inc.
 -- SPDX-License-Identifier: Apache-2.0
 --
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
+-- Apache License, Version 2.0（「ライセンス」）に基づいてライセンスされています。
+-- ライセンスに準拠しない限り、このファイルを使用することはできません。
+-- ライセンスのコピーは以下から入手できます：
 --
 -- http://www.apache.org/licenses/LICENSE-2.0
 --
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- 適用法で要求されるか、書面で同意されない限り、ライセンスに基づいて
+-- 配布されるソフトウェアは、「現状のまま」で配布され、
+-- 明示または黙示を問わず、いかなる種類の保証または条件も含みません。
+-- 権限と制限については、ライセンスを参照してください。
 
 -- ============================================================================
--- FSI Demo Setup Script
--- Purpose: Setup for Quantitative Research with AI SQL and Cortex Code
+-- FSI デモ セットアップスクリプト
+-- 目的: AI SQL と Cortex Code を使用した定量リサーチのセットアップ
 -- ============================================================================
 
 USE ROLE ACCOUNTADMIN;
 
 -- ============================================================================
--- Auto-install Snowflake Public Data (Free) from Marketplace
--- Note: May require manual acceptance on some accounts
+-- Marketplace から Snowflake Public Data (Free) を自動インストール
+-- 注意: 一部のアカウントでは手動での承認が必要な場合があります
 -- ============================================================================
 CREATE WAREHOUSE IF NOT EXISTS FSI_DEMO_WH WITH WAREHOUSE_SIZE = 'LARGE' AUTO_SUSPEND = 300 AUTO_RESUME = TRUE;
 USE WAREHOUSE FSI_DEMO_WH;
@@ -30,11 +29,11 @@ CALL SYSTEM$REQUEST_LISTING_AND_WAIT('GZTSZ290BV255');
 CALL SYSTEM$ACCEPT_LEGAL_TERMS('DATA_EXCHANGE_LISTING', 'GZTSZ290BV255');
 CREATE DATABASE IF NOT EXISTS SNOWFLAKE_PUBLIC_DATA_FREE FROM LISTING 'GZTSZ290BV255';
 
--- Set query tag for tracking
+-- トラッキング用のクエリタグを設定
 ALTER SESSION SET query_tag = '{"origin":"sf_sit-is","name":"quantitative_research_aisql_cortex","version":{"major":1,"minor":0},"attributes":{"is_quickstart":1,"source":"sql"}}';
 
 -- ============================================================================
--- SECTION 1: Role and Grants Setup
+-- セクション 1: ロールと権限のセットアップ
 -- ============================================================================
 
 CREATE ROLE IF NOT EXISTS FSI_DEMO_ROLE;
@@ -42,25 +41,25 @@ GRANT CREATE WAREHOUSE ON ACCOUNT TO ROLE FSI_DEMO_ROLE;
 GRANT CREATE DATABASE ON ACCOUNT TO ROLE FSI_DEMO_ROLE;
 GRANT CREATE INTEGRATION ON ACCOUNT TO ROLE FSI_DEMO_ROLE;
 
--- Grant access to Snowflake Marketplace Free Public Data (imported database)
+-- Snowflake Marketplace Free Public Data（インポートされたデータベース）へのアクセスを付与
 GRANT IMPORTED PRIVILEGES ON DATABASE SNOWFLAKE_PUBLIC_DATA_FREE TO ROLE FSI_DEMO_ROLE;
 
 SET CURRENT_USER = (SELECT CURRENT_USER());   
 GRANT ROLE FSI_DEMO_ROLE TO USER IDENTIFIER($CURRENT_USER);
 
--- Enable cross-region Cortex features
+-- クロスリージョン Cortex 機能を有効化
 ALTER ACCOUNT SET CORTEX_ENABLED_CROSS_REGION = 'ANY_REGION';
 
 USE ROLE FSI_DEMO_ROLE;
 
 -- ============================================================================
--- SECTION 2: Database and Schema Setup
+-- セクション 2: データベースとスキーマのセットアップ
 -- ============================================================================
 
 CREATE DATABASE IF NOT EXISTS FSI_DEMO_DB;
 CREATE SCHEMA IF NOT EXISTS FSI_DEMO_DB.ANALYTICS;
 
--- Grant explicit privileges on database and schema to FSI_DEMO_ROLE
+-- FSI_DEMO_ROLE にデータベースとスキーマへの明示的な権限を付与
 GRANT USAGE ON DATABASE FSI_DEMO_DB TO ROLE FSI_DEMO_ROLE;
 GRANT ALL PRIVILEGES ON SCHEMA FSI_DEMO_DB.ANALYTICS TO ROLE FSI_DEMO_ROLE;
 GRANT CREATE TABLE ON SCHEMA FSI_DEMO_DB.ANALYTICS TO ROLE FSI_DEMO_ROLE;
@@ -70,7 +69,7 @@ USE DATABASE FSI_DEMO_DB;
 USE SCHEMA ANALYTICS;
 
 -- ============================================================================
--- SECTION 3: Warehouse and Compute Pool Setup
+-- セクション 3: ウェアハウスとコンピュートプールのセットアップ
 -- ============================================================================
 
 CREATE OR REPLACE WAREHOUSE FSI_DEMO_WH WITH 
@@ -81,7 +80,7 @@ CREATE OR REPLACE WAREHOUSE FSI_DEMO_WH WITH
 
 USE WAREHOUSE FSI_DEMO_WH;
 
--- Create dedicated compute pool for container notebooks
+-- コンテナノートブック用の専用コンピュートプールを作成
 USE ROLE ACCOUNTADMIN;
 CREATE COMPUTE POOL IF NOT EXISTS FSI_DEMO_COMPUTE_POOL
   MIN_NODES = 1
@@ -94,29 +93,29 @@ GRANT USAGE ON COMPUTE POOL FSI_DEMO_COMPUTE_POOL TO ROLE FSI_DEMO_ROLE;
 USE ROLE FSI_DEMO_ROLE;
 
 -- ============================================================================
--- SECTION 4: Snowflake Intelligence and Cortex Setup
+-- セクション 4: Snowflake Intelligence と Cortex のセットアップ
 -- ============================================================================
 
 USE ROLE ACCOUNTADMIN;
 
--- Enable cross-region Cortex (required for accounts not in Cortex-enabled regions)
+-- クロスリージョン Cortex を有効化（Cortex 対応リージョン以外のアカウントで必要）
 ALTER ACCOUNT SET CORTEX_ENABLED_CROSS_REGION = 'ANY_REGION';
 
--- Create Snowflake Intelligence object
+-- Snowflake Intelligence オブジェクトを作成
 CREATE SNOWFLAKE INTELLIGENCE IF NOT EXISTS SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT;
 
--- Snowflake Intelligence grants
+-- Snowflake Intelligence の権限付与
 GRANT CREATE SNOWFLAKE INTELLIGENCE ON ACCOUNT TO ROLE FSI_DEMO_ROLE;
 GRANT USAGE ON SNOWFLAKE INTELLIGENCE SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT TO ROLE FSI_DEMO_ROLE;
 GRANT MODIFY ON SNOWFLAKE INTELLIGENCE SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT TO ROLE FSI_DEMO_ROLE;
 GRANT USAGE ON SNOWFLAKE INTELLIGENCE SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT TO ROLE PUBLIC;
 
--- AI/Cortex component creation grants
+-- AI/Cortex コンポーネント作成の権限付与
 GRANT CREATE AGENT ON SCHEMA FSI_DEMO_DB.ANALYTICS TO ROLE FSI_DEMO_ROLE;
 GRANT CREATE CORTEX SEARCH SERVICE ON SCHEMA FSI_DEMO_DB.ANALYTICS TO ROLE FSI_DEMO_ROLE;
 GRANT CREATE SEMANTIC VIEW ON SCHEMA FSI_DEMO_DB.ANALYTICS TO ROLE FSI_DEMO_ROLE;
 
--- Account-level Cortex privileges (required for LLM functions)
+-- アカウントレベルの Cortex 権限（LLM 関数に必要）
 GRANT BIND SERVICE ENDPOINT ON ACCOUNT TO ROLE FSI_DEMO_ROLE;
 
 USE ROLE FSI_DEMO_ROLE;
@@ -124,14 +123,14 @@ USE DATABASE FSI_DEMO_DB;
 USE SCHEMA ANALYTICS;
 
 -- ============================================================================
--- SECTION 5: Table Setup
+-- セクション 5: テーブルのセットアップ
 -- ============================================================================
 
--- FSI_DATA: Pre-computed features from Cybersyn price data
--- This enables faster training - features are computed once during setup
+-- FSI_DATA: Cybersyn 価格データから事前計算された特徴量
+-- これにより高速なトレーニングが可能 - 特徴量はセットアップ時に一度だけ計算される
 CREATE OR REPLACE TABLE FSI_DATA AS
 WITH dow30_prices AS (
-    -- Get DOW 30 stock prices from Cybersyn
+    -- Cybersyn から DOW 30 の株価を取得
     SELECT 
         ticker,
         date,
@@ -155,21 +154,21 @@ with_features AS (
         date,
         price,
         return,
-        -- r_1: 1-day return
+        -- r_1: 1日リターン
         return AS r_1,
-        -- r_5_1: return from t-5 to t-1 (4 days)
+        -- r_5_1: t-5からt-1までのリターン（4日間）
         LN(LAG(price, 1) OVER (PARTITION BY ticker ORDER BY date) / 
            LAG(price, 5) OVER (PARTITION BY ticker ORDER BY date)) AS r_5_1,
-        -- r_10_5: return from t-10 to t-5 (5 days)
+        -- r_10_5: t-10からt-5までのリターン（5日間）
         LN(LAG(price, 5) OVER (PARTITION BY ticker ORDER BY date) / 
            LAG(price, 10) OVER (PARTITION BY ticker ORDER BY date)) AS r_10_5,
-        -- r_21_10: return from t-21 to t-10 (11 days)
+        -- r_21_10: t-21からt-10までのリターン（11日間）
         LN(LAG(price, 10) OVER (PARTITION BY ticker ORDER BY date) / 
            LAG(price, 21) OVER (PARTITION BY ticker ORDER BY date)) AS r_21_10,
-        -- r_63_21: return from t-63 to t-21 (42 days)
+        -- r_63_21: t-63からt-21までのリターン（42日間）
         LN(LAG(price, 21) OVER (PARTITION BY ticker ORDER BY date) / 
            LAG(price, 63) OVER (PARTITION BY ticker ORDER BY date)) AS r_63_21,
-        -- y: target variable - return from t+2 to t+6 (forward 5-day return)
+        -- y: 目的変数 - t+2からt+6までのリターン（5日間先のリターン）
         LN(LEAD(price, 6) OVER (PARTITION BY ticker ORDER BY date) / 
            LEAD(price, 2) OVER (PARTITION BY ticker ORDER BY date)) AS y
     FROM with_returns
@@ -181,8 +180,8 @@ WHERE r_1 IS NOT NULL
   AND r_21_10 IS NOT NULL 
   AND r_63_21 IS NOT NULL;
 
--- AI_TRANSCRIPTS_ANALYSTS_SENTIMENTS: Populated by Notebook 1
--- NOTE: Notebook 1 uses CREATE OR REPLACE to ensure data is populated
+-- AI_TRANSCRIPTS_ANALYSTS_SENTIMENTS: Notebook 1 によって投入される
+-- 注意: Notebook 1 は CREATE OR REPLACE を使用してデータを確実に投入する
 CREATE TABLE IF NOT EXISTS AI_TRANSCRIPTS_ANALYSTS_SENTIMENTS (
     primary_ticker VARCHAR,
     event_timestamp TIMESTAMP_NTZ,
@@ -193,7 +192,7 @@ CREATE TABLE IF NOT EXISTS AI_TRANSCRIPTS_ANALYSTS_SENTIMENTS (
     sentiment_reason VARCHAR
 );
 
--- UNIQUE_TRANSCRIPTS: Staging table for transcript deduplication
+-- UNIQUE_TRANSCRIPTS: トランスクリプト重複排除用のステージングテーブル
 CREATE OR REPLACE TABLE UNIQUE_TRANSCRIPTS (
     primary_ticker VARCHAR,
     event_timestamp TIMESTAMP_NTZ,
@@ -202,7 +201,7 @@ CREATE OR REPLACE TABLE UNIQUE_TRANSCRIPTS (
     transcript VARIANT
 );
 
--- Populate UNIQUE_TRANSCRIPTS from Marketplace data (DOW Jones 30 tickers)
+-- Marketplace データから UNIQUE_TRANSCRIPTS を投入（DOW Jones 30 銘柄）
 INSERT INTO UNIQUE_TRANSCRIPTS
 WITH filtered_transcripts AS (
     SELECT *
@@ -219,7 +218,7 @@ deduplicated_transcripts AS (
         *,
         ROW_NUMBER() OVER (
             PARTITION BY primary_ticker, event_timestamp
-            ORDER BY created_at ASC   -- keep the earliest version (point-in-time)
+            ORDER BY created_at ASC   -- 最も古いバージョンを保持（ポイントインタイム）
         ) AS rn
     FROM filtered_transcripts
 )
@@ -233,10 +232,10 @@ FROM deduplicated_transcripts
 WHERE rn = 1;
 
 -- ============================================================================
--- SECTION 7: Stored Procedures
+-- セクション 7: ストアドプロシージャ
 -- ============================================================================
 
--- Stock Performance Predictor using registered ML models
+-- 登録された ML モデルを使用した株式パフォーマンス予測器
 CREATE OR REPLACE PROCEDURE GET_TOP_BOTTOM_STOCK_PREDICTIONS(
     MODEL_NAME STRING DEFAULT NULL,
     TOP_N INTEGER DEFAULT 5
@@ -256,7 +255,7 @@ import snowflake.snowpark.functions as F
 from snowflake.snowpark.window import Window
 
 def get_latest_model(session: snowpark.Session) -> str:
-    """Dynamically find the latest registered ML model."""
+    """登録されている最新のMLモデルを動的に検索"""
     try:
         session.sql("SHOW MODELS LIKE 'FIS_%'").collect()
         result = session.sql("""
@@ -270,7 +269,7 @@ def get_latest_model(session: snowpark.Session) -> str:
     return None
 
 def parse_prediction(prediction_json):
-    """Parse prediction JSON from ML model output."""
+    """MLモデル出力から予測JSONをパース"""
     try:
         if isinstance(prediction_json, str):
             prediction_dict = json.loads(prediction_json)
@@ -286,19 +285,19 @@ def get_top_bottom_stock_predictions(session: snowpark.Session,
                                    model_name: str = None,
                                    top_n: int = 5) -> str:
     """
-    Generate stock forecasts using batch predictions for maximum performance.
-    Uses registered ML models to predict stock returns based on momentum features.
-    If model_name is not provided, automatically uses the latest FIS_* model.
+    バッチ予測を使用して最大パフォーマンスで株式予測を生成。
+    登録されたMLモデルを使用し、モメンタム特徴量に基づいて株式リターンを予測。
+    model_nameが指定されない場合、自動的に最新のFIS_*モデルを使用。
     """
     
     try:
-        # Auto-detect latest model if not specified
+        # 指定がなければ最新モデルを自動検出
         if model_name is None or model_name.strip() == '':
             model_name = get_latest_model(session)
             if model_name is None:
-                return "ERROR: No ML models found. Please run the TRAIN_ML_MODELS notebook first."
+                return "ERROR: MLモデルが見つかりません。先にTRAIN_ML_MODELSノートブックを実行してください。"
         
-        # Validate FSI data source exists
+        # FSIデータソースの存在を検証
         fsi_table_name = "FSI_DATA"
         
         try:
@@ -306,7 +305,7 @@ def get_top_bottom_stock_predictions(session: snowpark.Session,
             schema = fsi_df.schema
             column_names = [field.name for field in schema.fields]
             
-            # Find column mappings
+            # カラムマッピングを検索
             ticker_col = None
             date_col = None
             price_col = None
@@ -321,12 +320,12 @@ def get_top_bottom_stock_predictions(session: snowpark.Session,
                     price_col = col_name
             
             if not all([ticker_col, date_col, price_col]):
-                return f"ERROR: FSI_DATA missing required columns. Found: {column_names}. Need: ticker, date, price columns."
+                return f"ERROR: FSI_DATAに必要なカラムがありません。検出: {column_names}。必要: ticker, date, price カラム。"
                 
         except Exception as e:
             raise ValueError(f"""ERROR: {str(e)}""")
         
-        # Check for pre-calculated features
+        # 事前計算された特徴量を確認
         feature_columns = {}
         for col_name in column_names:
             clean_name = col_name.strip('"').upper()
@@ -343,7 +342,7 @@ def get_top_bottom_stock_predictions(session: snowpark.Session,
         
         window_spec = Window.partition_by(F.col(ticker_col)).order_by(F.col(date_col).desc())
         
-        # Get latest record per ticker with complete features
+        # 完全な特徴量を持つ銘柄ごとの最新レコードを取得
         latest_features_df = fsi_df.filter(
             F.col(feature_columns['r_1']).is_not_null() &
             F.col(feature_columns['r_5_1']).is_not_null() &
@@ -364,7 +363,7 @@ def get_top_bottom_stock_predictions(session: snowpark.Session,
             F.col(feature_columns['r_63_21']).alias("r_63_21")
         )
         
-        # Batch predict using registered model (use fully qualified name)
+        # 登録モデルを使用したバッチ予測（完全修飾名を使用）
         batch_predictions_df = latest_features_df.with_column(
             "prediction_json",
             F.call_function(f"FSI_DEMO_DB.ANALYTICS.{model_name}!PREDICT", 
@@ -380,7 +379,7 @@ def get_top_bottom_stock_predictions(session: snowpark.Session,
         
         prediction_results = batch_predictions_df.collect()
         
-        # Process all predictions
+        # すべての予測を処理
         predictions = []
         for row in prediction_results:
             try:
@@ -395,37 +394,37 @@ def get_top_bottom_stock_predictions(session: snowpark.Session,
                 continue
         
         if not predictions:
-            return "ERROR: No valid predictions could be generated for any symbols."
+            return "ERROR: どのシンボルに対しても有効な予測を生成できませんでした。"
         
-        # Sort predictions by value (descending)
+        # 予測値で降順ソート
         predictions.sort(key=lambda x: x[1], reverse=True)
         
-        # Get top N and bottom N
+        # 上位N件と下位N件を取得
         top_n_results = predictions[:top_n]
         bottom_n_results = predictions[-top_n:] if len(predictions) >= top_n else []
         
-        # Format the output
-        result = f"Using model: {model_name}\n\n"
-        result += f"TOP {top_n} PREDICTED PERFORMERS:\n"
+        # 出力をフォーマット
+        result = f"使用モデル: {model_name}\n\n"
+        result += f"予測パフォーマンス 上位 {top_n}:\n"
         for i, (symbol, prediction) in enumerate(top_n_results, 1):
             result += f"{i}. {symbol}: {prediction:.6f}\n"
         
         if bottom_n_results:
-            result += f"\nBOTTOM {top_n} PREDICTED PERFORMERS:\n"
+            result += f"\n予測パフォーマンス 下位 {top_n}:\n"
             for i, (symbol, prediction) in enumerate(bottom_n_results, 1):
                 result += f"{i}. {symbol}: {prediction:.6f}\n"
         
         return result
         
     except Exception as e:
-        return f"ERROR generating predictions: {str(e)}"
+        return f"ERROR 予測生成中: {str(e)}"
 
 def main(session: snowpark.Session, model_name: str = None, top_n: int = 5) -> str:
-    """Main handler function for the stored procedure."""
+    """ストアドプロシージャのメインハンドラー関数"""
     return get_top_bottom_stock_predictions(session, model_name, top_n)
 $$;
 
--- Email notification integration (requires ACCOUNTADMIN)
+-- メール通知インテグレーション（ACCOUNTADMIN が必要）
 USE ROLE ACCOUNTADMIN;
 
 CREATE OR REPLACE NOTIFICATION INTEGRATION EMAIL_INTEGRATION
@@ -433,10 +432,10 @@ CREATE OR REPLACE NOTIFICATION INTEGRATION EMAIL_INTEGRATION
   ENABLED=TRUE
   DEFAULT_SUBJECT = 'Snowflake Intelligence';
 
--- Grant usage on email integration to FSI_DEMO_ROLE
+-- FSI_DEMO_ROLE にメールインテグレーションの使用権限を付与
 GRANT USAGE ON INTEGRATION EMAIL_INTEGRATION TO ROLE FSI_DEMO_ROLE;
 
--- Switch back to FSI_DEMO_ROLE for procedure creation
+-- プロシージャ作成のために FSI_DEMO_ROLE に切り替え
 USE ROLE FSI_DEMO_ROLE;
 USE DATABASE FSI_DEMO_DB;
 USE SCHEMA ANALYTICS;
@@ -455,34 +454,34 @@ AS
 $$
 def send_email(session, recipient_email, subject, body):
     try:
-        # Get current user's email if not provided
+        # 指定がなければ現在のユーザーのメールアドレスを取得
         if not recipient_email or recipient_email.strip() == '':
             result = session.sql("SELECT CURRENT_USER()").collect()
             current_user = result[0][0] if result else None
             if current_user:
-                # Get user's email from SHOW USERS
+                # SHOW USERS からユーザーのメールを取得
                 session.sql(f"SHOW USERS LIKE '{current_user}'").collect()
                 user_info = session.sql("SELECT \"email\" FROM TABLE(RESULT_SCAN(LAST_QUERY_ID()))").collect()
                 if user_info and user_info[0][0]:
                     recipient_email = user_info[0][0]
                 else:
-                    return "Error: Could not determine recipient email. Please provide an email address."
+                    return "エラー: 宛先メールアドレスを特定できませんでした。メールアドレスを指定してください。"
             else:
-                return "Error: Could not determine current user. Please provide an email address."
+                return "エラー: 現在のユーザーを特定できませんでした。メールアドレスを指定してください。"
         
-        # Use default subject if not provided
+        # 指定がなければデフォルトの件名を使用
         if not subject or subject.strip() == '':
             subject = 'Snowflake Intelligence'
         
-        # Check if body is provided
+        # 本文が指定されているか確認
         if not body or body.strip() == '':
-            return "Error: Email body is required."
+            return "エラー: メール本文は必須です。"
         
-        # Escape single quotes in the body to prevent SQL injection
+        # SQLインジェクション防止のためシングルクォートをエスケープ
         escaped_body = body.replace("'", "''")
         escaped_subject = subject.replace("'", "''")
         
-        # Execute the system procedure call
+        # システムプロシージャを実行
         session.sql(f"""
             CALL SYSTEM$SEND_EMAIL(
                 'EMAIL_INTEGRATION',
@@ -493,27 +492,27 @@ def send_email(session, recipient_email, subject, body):
             )
         """).collect()
         
-        return f'Email sent successfully to {recipient_email} with subject: "{subject}"'
+        return f'メールを {recipient_email} に送信しました。件名: "{subject}"'
     except Exception as e:
-        return f"Error sending email: {str(e)}"
+        return f"メール送信エラー: {str(e)}"
 $$;
 
--- Grant usage on procedures to the role
+-- ロールにプロシージャの使用権限を付与
 GRANT USAGE ON PROCEDURE GET_TOP_BOTTOM_STOCK_PREDICTIONS(STRING, INTEGER) TO ROLE FSI_DEMO_ROLE;
 GRANT USAGE ON PROCEDURE SEND_EMAIL(VARCHAR, VARCHAR, VARCHAR) TO ROLE FSI_DEMO_ROLE;
 
 -- ============================================================================
--- SECTION 8: Git Integration for Automated Notebook Deployment
+-- セクション 8: 自動ノートブックデプロイ用の Git インテグレーション
 -- ============================================================================
 
 USE ROLE FSI_DEMO_ROLE;
 USE DATABASE FSI_DEMO_DB;
 USE SCHEMA ANALYTICS;
 
--- Switch to ACCOUNTADMIN to create API integration
+-- API インテグレーション作成のため ACCOUNTADMIN に切り替え
 USE ROLE ACCOUNTADMIN;
 
--- Create Git API integration for public repository
+-- パブリックリポジトリ用の Git API インテグレーションを作成
 CREATE OR REPLACE API INTEGRATION GIT_HTTPS_API
   API_PROVIDER = GIT_HTTPS_API
   API_ALLOWED_PREFIXES = ('https://github.com/')
@@ -521,21 +520,21 @@ CREATE OR REPLACE API INTEGRATION GIT_HTTPS_API
 
 GRANT USAGE ON INTEGRATION GIT_HTTPS_API TO ROLE FSI_DEMO_ROLE;
 
--- Switch back to FSI_DEMO_ROLE to create git repository
+-- Git リポジトリ作成のため FSI_DEMO_ROLE に切り替え
 USE ROLE FSI_DEMO_ROLE;
 USE DATABASE FSI_DEMO_DB;
 USE SCHEMA ANALYTICS;
 
--- Create Git repository (public repo - no credentials needed)
+-- Git リポジトリを作成（パブリックリポジトリ - 認証情報不要）
 CREATE OR REPLACE GIT REPOSITORY FSI_DEMO_REPO
   API_INTEGRATION = GIT_HTTPS_API
   ORIGIN = 'https://github.com/Snowflake-Labs/sfguide-quantitative-research-ai-functions-and-cortex-code.git';
 
--- Fetch latest code from repository
+-- リポジトリから最新コードをフェッチ
 ALTER GIT REPOSITORY FSI_DEMO_REPO FETCH;
 
--- Create warehouse notebooks (faster for ML training)
--- Note: Warehouse notebooks run both Python and SQL on warehouse
+-- ウェアハウスノートブックを作成（ML トレーニング用に高速）
+-- 注意: ウェアハウスノートブックは Python と SQL の両方をウェアハウスで実行
 CREATE OR REPLACE NOTEBOOK START_HERE
   FROM '@FSI_DEMO_REPO/branches/main/notebooks'
   MAIN_FILE = '0_start_here.ipynb'
@@ -561,10 +560,10 @@ CREATE OR REPLACE NOTEBOOK CREATE_CORTEX_COMPONENTS
 ALTER NOTEBOOK CREATE_CORTEX_COMPONENTS ADD LIVE VERSION FROM LAST;
 
 -- ============================================================================
--- SECTION 9: Completion
+-- セクション 9: 完了
 -- ============================================================================
 
-SELECT 'Setup completed successfully! Next steps:' AS STATUS,
-       '1. Run Notebook: START_HERE (extracts sentiment using AI Functions)' AS STEP_1,
-       '2. Run Notebook: TRAIN_ML_MODELS (trains and registers ML models)' AS STEP_2,
-       '3. Run Script: create_cortex_components.sql (creates Cortex Search, Semantic View, and Agent)' AS STEP_3;
+SELECT 'セットアップが正常に完了しました！次のステップ:' AS STATUS,
+       '1. ノートブック実行: START_HERE (AI Functions を使用してセンチメントを抽出)' AS STEP_1,
+       '2. ノートブック実行: TRAIN_ML_MODELS (ML モデルをトレーニングして登録)' AS STEP_2,
+       '3. スクリプト実行: create_cortex_components.sql (Cortex Search, Semantic View, Agent を作成)' AS STEP_3;

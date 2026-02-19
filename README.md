@@ -1,14 +1,14 @@
-# Quant Research and Data Science with Cortex Code and AI Functions using Snowflake Public Data
+# Cortex Code と AI Functions を使用した Snowflake パブリックデータによるクオンツリサーチとデータサイエンス
 
-Transform unstructured earnings call transcripts into actionable investment insights using Snowflake Cortex AI, ML Model Registry, and intelligent agents - all accelerated by **Cortex Code**.
+Snowflake Cortex AI、ML Model Registry、インテリジェントエージェントを使用して、非構造化の決算説明会トランスクリプトを実用的な投資インサイトに変換します。すべて **Cortex Code** で加速できます。
 
-## Why This Matters
+## なぜこれが重要か
 
-Financial analysts spend countless hours manually reviewing earnings call transcripts. This guide demonstrates how to **systematically process unstructured data at scale using AI Functions** (`AI_COMPLETE`, `AI_SQL`) - turning raw transcript text into structured sentiment scores, analyst participation metrics, and investment signals that feed directly into quantitative models.
+金融アナリストは決算説明会トランスクリプトの手動レビューに膨大な時間を費やしています。このガイドでは、**AI Functions**（`AI_COMPLETE`、`AI_SQL`）を使用して**非構造化データを大規模に体系的に処理する方法**を示します。生のトランスクリプトテキストを、定量モデルに直接取り込める構造化されたセンチメントスコア、アナリスト参加指標、投資シグナルに変換します。
 
-> **Full Guide:** For detailed architecture, business impact, and use cases, see the [Snowflake Developers Guide](https://www.snowflake.com/en/developers/guides/quantitative-research-with-ai-functions-and-cortex-code/).
+> **詳細ガイド:** アーキテクチャ、ビジネスインパクト、ユースケースの詳細については、[Snowflake Developers Guide](https://www.snowflake.com/en/developers/guides/quantitative-research-with-ai-functions-and-cortex-code/) を参照してください。
 
-## Built By
+## 作成者
 
 **Harry Yu**  
 Senior Data Scientist, Finance | Snowflake  
@@ -16,75 +16,75 @@ Senior Data Scientist, Finance | Snowflake
 
 ---
 
-## What You Will Learn
-- How to use **Cortex Code** to build entire ML pipelines through natural language
-- How to extract structured insights from unstructured text using `AI_COMPLETE()`
-- How to train and register ML models in Snowflake's Model Registry
-- How to create semantic search over unstructured data with Cortex Search
-- How to build a Semantic View for natural language SQL queries via Cortex Analyst
-- How to build a Cortex Agent that combines multiple AI tools
-- How to access your agent through Snowflake Intelligence
+## 学べること
+- **Cortex Code** を使用して自然言語で ML パイプライン全体を構築する方法
+- `AI_COMPLETE()` を使用して非構造化テキストから構造化インサイトを抽出する方法
+- Snowflake の Model Registry で ML モデルを学習・登録する方法
+- Cortex Search で非構造化データに対するセマンティック検索を作成する方法
+- Cortex Analyst を介した自然言語 SQL クエリのための Semantic View を構築する方法
+- 複数の AI ツールを統合した Cortex Agent を構築する方法
+- Snowflake Intelligence を通じてエージェントにアクセスする方法
 
-## What You Will Build
-- A **sentiment analysis pipeline** using `AI_COMPLETE()` to score earnings call transcripts (1-10 scale)
-- A **LightGBM stock prediction model** with walk-forward validation, registered in Snowflake Model Registry
-- A **Cortex Search service** for semantic search over sentiment insights
-- A **Semantic View** enabling natural language queries via Cortex Analyst
-- A **Cortex Agent** that orchestrates ML predictions, structured queries, semantic search, and email notifications—all accessible via Snowflake Intelligence
+## 構築するもの
+- `AI_COMPLETE()` を使用して決算説明会トランスクリプトをスコアリング（1-10 スケール）する**センチメント分析パイプライン**
+- ウォークフォワード検証を備え、Snowflake Model Registry に登録された **LightGBM 株価予測モデル**
+- センチメントインサイトに対するセマンティック検索のための **Cortex Search サービス**
+- Cortex Analyst を介した自然言語クエリを可能にする **Semantic View**
+- ML 予測、構造化クエリ、セマンティック検索、メール通知を統合し、Snowflake Intelligence からアクセス可能な **Cortex Agent**
 
-## Prerequisites
+## 前提条件
 
-- Snowflake account ([sign up for a free trial](https://signup.snowflake.com/)) with `ACCOUNTADMIN` access (see note below)
+- `ACCOUNTADMIN` アクセス権を持つ Snowflake アカウント（[無料トライアルにサインアップ](https://signup.snowflake.com/)）（下記の注意を参照）
 
-> **Note on Privileges:** This guide uses `ACCOUNTADMIN` for simplicity in demo and learning environments. For production deployments, follow the principle of least privilege by creating a dedicated role with only the specific grants required.
+> **権限に関する注意:** このガイドでは、デモおよび学習環境での簡便さのために `ACCOUNTADMIN` を使用しています。本番環境では、最小権限の原則に従い、必要な特定の権限のみを持つ専用ロールを作成してください。
 
-## Getting Started
+## はじめに
 
-### Step 1: Run Setup Script
+### ステップ 1: セットアップスクリプトの実行
 
-1. In Snowsight, navigate to **Projects > Workspaces**
-2. Create a new SQL file and copy the contents from [`scripts/setup.sql`](https://github.com/Snowflake-Labs/sfguide-quantitative-research-ai-functions-and-cortex-code/blob/main/scripts/setup.sql)
-3. Run the entire script
+1. Snowsight で **Projects > Workspaces** に移動
+2. 新しい SQL ファイルを作成し、[`scripts/setup.sql`](https://github.com/Snowflake-Labs/sfguide-quantitative-research-ai-functions-and-cortex-code/blob/main/scripts/setup.sql) の内容をコピー
+3. スクリプト全体を実行
 
-This creates the complete demo environment including:
-- Auto-installs **Snowflake Public Data (Free)** from Marketplace
-- Database, warehouse, and role setup
-- Pre-computed ML features (`FSI_DATA` table)
-- Tables, stored procedures, and ML model infrastructure
-- Deploys reference notebooks from this repository
+これにより、以下を含む完全なデモ環境が作成されます:
+- **Snowflake Public Data (Free)** を Marketplace から自動インストール
+- データベース、ウェアハウス、ロールのセットアップ
+- 事前計算された ML 特徴量（`FSI_DATA` テーブル）
+- テーブル、ストアドプロシージャ、ML モデルインフラストラクチャ
+- このリポジトリからリファレンスノートブックをデプロイ
 
-### Step 2: Choose Your Path
+### ステップ 2: パスを選択
 
-| Path | Description |
-|------|-------------|
-| **[Path A: Cortex Code](#path-a-cortex-code-recommended)** | Build everything through natural language prompts |
-| **[Path B: Notebooks](#path-b-notebooks-optional)** | Run pre-built notebooks |
+| パス | 説明 |
+|------|------|
+| **[パス A: Cortex Code](#パス-a-cortex-code推奨)** | 自然言語プロンプトですべてを構築 |
+| **[パス B: ノートブック](#パス-b-ノートブックオプション)** | 事前構築されたノートブックを実行 |
 
 ---
 
-## Path A: Cortex Code (Recommended)
+## パス A: Cortex Code（推奨）
 
-Build the entire quantitative research pipeline through conversation with Cortex Code.
+Cortex Code との対話を通じて、クオンツリサーチパイプライン全体を構築します。
 
-### A0: Run Setup Script
+### A0: セットアップスクリプトの実行
 
-Before starting, run the setup script to create the required database objects:
+開始前に、必要なデータベースオブジェクトを作成するセットアップスクリプトを実行します:
 
-1. Open a SQL worksheet in Snowsight
-2. Copy and run the contents of [scripts/setup.sql](https://github.com/Snowflake-Labs/sfguide-quantitative-research-ai-functions-and-cortex-code/blob/main/scripts/setup.sql)
+1. Snowsight で SQL ワークシートを開く
+2. [scripts/setup.sql](https://github.com/Snowflake-Labs/sfguide-quantitative-research-ai-functions-and-cortex-code/blob/main/scripts/setup.sql) の内容をコピーして実行
 
-This creates the database, schema, role, warehouse, and base tables needed for the lab.
+これにより、ラボに必要なデータベース、スキーマ、ロール、ウェアハウス、ベーステーブルが作成されます。
 
-### A1: Create a New Notebook
+### A1: 新しいノートブックの作成
 
-1. Navigate to **Projects → Notebooks** in Snowsight
-2. Click **+ Notebook** (top-right)
-3. Configure the notebook:
+1. Snowsight で **Projects → Notebooks** に移動
+2. **+ Notebook**（右上）をクリック
+3. ノートブックを設定:
    - **Notebook location:** `FSI_DEMO_DB` → `ANALYTICS`
    - **Notebook warehouse:** `FSI_DEMO_WH`
-4. Click **Create**
-5. Delete the auto-populated sample cells (select cell → delete)
-6. Add a Python cell with this starter code and run it:
+4. **Create** をクリック
+5. 自動入力されたサンプルセルを削除（セルを選択 → 削除）
+6. Python セルを追加し、以下のスターターコードを実行:
 
 ```python
 import pandas as pd
@@ -97,7 +97,7 @@ session.use_database("FSI_DEMO_DB")
 session.use_schema("ANALYTICS")
 ```
 
-7. Click **Packages** (top menu) and add:
+7. **Packages**（トップメニュー）をクリックして以下を追加:
    - `lightgbm`
    - `scikit-learn`
    - `snowflake-ml-python`
@@ -105,26 +105,26 @@ session.use_schema("ANALYTICS")
    - `seaborn`
    - `statsmodels`
 
-8. Click **Start** to activate the notebook
+8. **Start** をクリックしてノートブックを起動
 
-### A2: Open Cortex Code
+### A2: Cortex Code を開く
 
-Click the **Cortex Code icon** (bottom-right corner of the notebook).
+ノートブックの右下隅にある **Cortex Code アイコン** をクリックします。
 
-> **Tip:** Refresh the page before your first prompt - this helps Cortex Code recognize the notebook context.
+> **ヒント:** 最初のプロンプトの前にページを更新すると、Cortex Code がノートブックコンテキストを認識しやすくなります。
 
-### A3: Run Prompts in Sequence
+### A3: プロンプトを順番に実行
 
-Use the following prompts one at a time. Run the generated code after each prompt before moving to the next.
+以下のプロンプトを1つずつ使用します。次のプロンプトに進む前に、各プロンプトで生成されたコードを実行してください。
 
-> **Tip:** You have multiple options to run generated code:
-> - Click the **+** button to add it as a new cell in your notebook
-> - Use the **Run** option when Cortex Code offers it
-> - Click the **play button** to run it within the chat interface
+> **ヒント:** 生成されたコードを実行する方法は複数あります:
+> - **+** ボタンをクリックしてノートブックに新しいセルとして追加
+> - Cortex Code が提供する **Run** オプションを使用
+> - **再生ボタン** をクリックしてチャットインターフェース内で実行
 
 ---
 
-#### Prompt 1: AI Sentiment Extraction
+#### プロンプト 1: AI センチメント抽出
 
 ```
 Using FSI_DEMO_DB.ANALYTICS.UNIQUE_TRANSCRIPTS table, extract analyst sentiment from earnings call transcripts.
@@ -138,11 +138,11 @@ Insert results into AI_TRANSCRIPTS_ANALYSTS_SENTIMENTS table with columns: PRIMA
 Filter out events with analyst_count <= 1.
 ```
 
-![Prompt 1: AI Sentiment Extraction](assets/prompt-1.gif)
+![プロンプト 1: AI センチメント抽出](assets/prompt-1.gif)
 
 ---
 
-#### Prompt 2: Train & Register ML Model
+#### プロンプト 2: ML モデルの学習と登録
 
 ```
 Using FSI_DEMO_DB.ANALYTICS.FSI_DATA table which has columns: ticker, date, price, r_1, r_5_1, r_10_5, r_21_10, r_63_21, and y (target).
@@ -162,11 +162,11 @@ Register each quarter's best model to Snowflake Model Registry as FIS_{quarter} 
 Do NOT pass metrics to log_model. Do NOT use target_methods as a separate parameter.
 ```
 
-![Prompt 2: Train & Register ML Model](assets/prompt-2.png)
+![プロンプト 2: ML モデルの学習と登録](assets/prompt-2.png)
 
 ---
 
-#### Prompt 3: Create Cortex Search Service
+#### プロンプト 3: Cortex Search Service の作成
 
 ```
 Create a Cortex Search Service named DOW_ANALYSTS_SENTIMENT_ANALYSIS in FSI_DEMO_DB.ANALYTICS schema.
@@ -178,11 +178,11 @@ Warehouse: FSI_DEMO_WH
 Target lag: 1 day
 ```
 
-![Prompt 3: Create Cortex Search Service](assets/prompt-3.png)
+![プロンプト 3: Cortex Search Service の作成](assets/prompt-3.png)
 
 ---
 
-#### Prompt 4: Create Semantic View
+#### プロンプト 4: Semantic View の作成
 
 ```
 Create a Semantic View named ANALYST_SENTIMENTS_VIEW in FSI_DEMO_DB.ANALYTICS schema for natural language queries on analyst sentiment data.
@@ -201,11 +201,11 @@ Measures:
 Include SENTIMENT_REASON as descriptive text field for qualitative insights.
 ```
 
-![Prompt 4: Create Semantic View](assets/prompt-4.png)
+![プロンプト 4: Semantic View の作成](assets/prompt-4.png)
 
 ---
 
-#### Prompt 5: Create Agent
+#### プロンプト 5: エージェントの作成
 
 ```
 Create a Cortex Agent named QUANTITATIVE_RESEARCH_AGENT in FSI_DEMO_DB.ANALYTICS schema.
@@ -243,11 +243,11 @@ Model: claude-3-5-sonnet
 Warehouse: FSI_DEMO_WH
 ```
 
-![Prompt 5: Create Agent](assets/prompt-5.png)
+![プロンプト 5: エージェントの作成](assets/prompt-5.png)
 
 ---
 
-#### Prompt 6: Register with Snowflake Intelligence
+#### プロンプト 6: Snowflake Intelligence への登録
 
 ```
 Register the agent FSI_DEMO_DB.ANALYTICS.QUANTITATIVE_RESEARCH_AGENT with Snowflake Intelligence object SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT so users can interact with it conversationally.
@@ -255,47 +255,47 @@ Register the agent FSI_DEMO_DB.ANALYTICS.QUANTITATIVE_RESEARCH_AGENT with Snowfl
 
 ---
 
-### A3: Test the Agent
+### A3: エージェントのテスト
 
-Navigate to **AI & ML → Snowflake Intelligence** and select **Quantitative Research Agent**. Try these:
+**AI & ML → Snowflake Intelligence** に移動し、**Quantitative Research Agent** を選択します。以下を試してください:
 
-**ML Predictions:**
+**ML 予測:**
 ```
-Give me top 3 vs bottom 3 trade predictions for the next period
-```
-
-**Sentiment Queries:**
-```
-Which companies have the highest sentiment score?
+次の期間のトップ3とボトム3の取引予測を教えて
 ```
 
-**Semantic Search:**
+**センチメントクエリ:**
 ```
-Search for companies with concerns about margins
-```
-
-**Combined Analysis:**
-```
-Compare the top predicted stocks with their analyst sentiment scores
+センチメントスコアが最も高い企業は？
 ```
 
-**Email Reports:**
-> **Note:** Email functionality requires your Snowflake user to have a verified email address. Verify your email in Snowsight: User menu → Setting → Profile → Verify Email.
+**セマンティック検索:**
+```
+マージンに懸念がある企業を検索
+```
+
+**複合分析:**
+```
+予測上位銘柄とそのアナリストセンチメントスコアを比較
+```
+
+**メールレポート:**
+> **注意:** メール機能を使用するには、Snowflake ユーザーに検証済みメールアドレスが必要です。Snowsight でメールを確認: ユーザーメニュー → Setting → Profile → Verify Email
 
 ```
-Send me an email summary of today's top stock picks
+本日のトップ銘柄の概要をメールで送信して
 ```
 
 ---
 
-### Optional Prompts (Learning/Understanding)
+### オプションプロンプト（学習・理解用）
 
-These prompts are for deeper exploration - not required for the agent.
+これらのプロンプトは深い探索のためのもので、エージェントには必須ではありません。
 
 <details>
-<summary><b>Optional Prompt A: Feature Engineering (from scratch)</b></summary>
+<summary><b>オプションプロンプト A: 特徴量エンジニアリング（ゼロから）</b></summary>
 
-> **Note:** This is already done in `setup.sql` which creates the `FSI_DATA` table with pre-computed features. Use this prompt if you want to understand or recreate the feature engineering process.
+> **注意:** これは `setup.sql` で既に実行されており、事前計算された特徴量を持つ `FSI_DATA` テーブルが作成されています。特徴量エンジニアリングプロセスを理解または再作成したい場合にこのプロンプトを使用してください。
 
 ```
 Using SNOWFLAKE_PUBLIC_DATA_FREE.PUBLIC_DATA_FREE.STOCK_PRICE_TIMESERIES for Dow Jones 30 stocks (MMM, AXP, AMGN, AMZN, AAPL, BA, CAT, CVX, CSCO, KO, DIS, GS, HD, HON, IBM, JNJ, JPM, MCD, MRK, MSFT, NKE, PG, RTX, CRM, SHW, TRV, UNH, V, WMT, NVDA).
@@ -314,7 +314,7 @@ Keep as panel data with ticker as a column.
 </details>
 
 <details>
-<summary><b>Optional Prompt B: Backtesting Strategy</b></summary>
+<summary><b>オプションプロンプト B: バックテスト戦略</b></summary>
 
 ```
 Test if the ML strategy works starting 2021.
@@ -335,7 +335,7 @@ Plot equity curves for before and after costs.
 </details>
 
 <details>
-<summary><b>Optional Prompt C: Sentiment-Return Regression Analysis</b></summary>
+<summary><b>オプションプロンプト C: センチメント-リターン回帰分析</b></summary>
 
 ```
 Analyze the relationship between analyst sentiment and stock returns.
@@ -359,92 +359,92 @@ Repeat analysis using sentiment_change (vs previous earnings call).
 
 ---
 
-## Path B: Notebooks (Optional)
+## パス B: ノートブック（オプション）
 
-If you prefer running pre-built code instead of Cortex Code prompts:
+Cortex Code プロンプトの代わりに事前構築されたコードを実行したい場合:
 
-### B1: Run START_HERE Notebook
-1. Navigate to **Projects > Notebooks**
-2. Switch role to `FSI_DEMO_ROLE`
-3. Open `START_HERE` notebook
-4. Run all cells to extract analyst sentiment using AI Functions
+### B1: START_HERE ノートブックの実行
+1. **Projects > Notebooks** に移動
+2. ロールを `FSI_DEMO_ROLE` に切り替え
+3. `START_HERE` ノートブックを開く
+4. すべてのセルを実行して AI Functions を使用したアナリストセンチメントを抽出
 
-*Equivalent to Prompt 1*
+*プロンプト 1 と同等*
 
-### B2: Run TRAIN_ML_MODELS Notebook
-1. Open `TRAIN_ML_MODELS` notebook
-2. Run all cells to train and register ML models
+### B2: TRAIN_ML_MODELS ノートブックの実行
+1. `TRAIN_ML_MODELS` ノートブックを開く
+2. すべてのセルを実行して ML モデルを学習・登録
 
-*Equivalent to Prompt 2*
+*プロンプト 2 と同等*
 
-### B3: Run CREATE_CORTEX_COMPONENTS Notebook
-1. Open `CREATE_CORTEX_COMPONENTS` notebook
-2. Run all cells to create Cortex Search, Semantic View, and Agent
+### B3: CREATE_CORTEX_COMPONENTS ノートブックの実行
+1. `CREATE_CORTEX_COMPONENTS` ノートブックを開く
+2. すべてのセルを実行して Cortex Search、Semantic View、Agent を作成
 
-*Equivalent to Prompts 3-6*
+*プロンプト 3-6 と同等*
 
-### B4: Test the Agent
-Navigate to **AI & ML → Snowflake Intelligence** and select **Quantitative Research Agent**.
-
----
-
-## Cortex Code Power Moves
-
-Beyond the guided prompts, here's what Cortex Code can do:
-
-### Explore & Understand
-```
-What tables exist in FSI_DEMO_DB.ANALYTICS? Describe each one.
-```
-```
-Explain this notebook cell by cell
-```
-
-### Debug & Fix
-```
-This cell is throwing an error - help me fix it
-```
-```
-Why is my model prediction returning NULL?
-```
-
-### Analyze Results
-```
-Summarize the model's feature importance
-```
-```
-Which stocks had the biggest prediction errors?
-```
+### B4: エージェントのテスト
+**AI & ML → Snowflake Intelligence** に移動し、**Quantitative Research Agent** を選択します。
 
 ---
 
-## Cleanup
+## Cortex Code パワームーブ
 
-To remove all demo objects:
+ガイド付きプロンプト以外にも、Cortex Code でできること:
 
-1. Navigate to **Projects > Workspaces**
-2. Create a new SQL file with contents from [`scripts/teardown.sql`](https://github.com/Snowflake-Labs/sfguide-quantitative-research-ai-functions-and-cortex-code/blob/main/scripts/teardown.sql)
-3. Run the script
+### 探索と理解
+```
+FSI_DEMO_DB.ANALYTICS にはどんなテーブルがある？それぞれを説明して。
+```
+```
+このノートブックをセルごとに説明して
+```
+
+### デバッグと修正
+```
+このセルがエラーを出している - 修正を手伝って
+```
+```
+モデルの予測が NULL を返すのはなぜ？
+```
+
+### 結果の分析
+```
+モデルの特徴量重要度を要約して
+```
+```
+予測誤差が最も大きかった銘柄は？
+```
 
 ---
 
-## What's Next?
+## クリーンアップ
 
-You've built an end-to-end AI-powered quantitative research pipeline entirely within Snowflake. From here:
+すべてのデモオブジェクトを削除するには:
 
-- **Expand coverage** - Add more companies beyond DOW 30
-- **Add new features** - Use Cortex Code to add technical indicators (RSI, MACD)
-- **Improve the model** - Experiment with different algorithms
-- **Build dashboards** - Create a Streamlit app for visualization
-- **Automate updates** - Schedule daily predictions with Snowflake Tasks
-
-Use **Cortex Code** to help with all of it—just describe what you want to build.
+1. **Projects > Workspaces** に移動
+2. [`scripts/teardown.sql`](https://github.com/Snowflake-Labs/sfguide-quantitative-research-ai-functions-and-cortex-code/blob/main/scripts/teardown.sql) の内容で新しい SQL ファイルを作成
+3. スクリプトを実行
 
 ---
 
-## Resources
+## 次のステップ
 
-- [Cortex Code Documentation](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code)
+Snowflake 内で完全な AI 駆動のクオンツリサーチパイプラインを構築しました。ここから:
+
+- **カバレッジを拡大** - DOW 30 以外の企業を追加
+- **新しい特徴量を追加** - Cortex Code を使用してテクニカル指標（RSI、MACD）を追加
+- **モデルを改善** - 異なるアルゴリズムを試す
+- **ダッシュボードを構築** - 可視化のための Streamlit アプリを作成
+- **更新を自動化** - Snowflake Tasks で日次予測をスケジュール
+
+**Cortex Code** を使用してすべてを支援してもらえます。構築したいものを説明するだけです。
+
+---
+
+## リソース
+
+- [Cortex Code ドキュメント](https://docs.snowflake.com/en/user-guide/cortex-code/cortex-code)
 - [Cortex AI Functions](https://docs.snowflake.com/en/user-guide/snowflake-cortex/aisql)
 - [Cortex Search](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-search/cortex-search-overview)
 - [Cortex Analyst](https://docs.snowflake.com/en/user-guide/snowflake-cortex/cortex-analyst)
@@ -452,8 +452,8 @@ Use **Cortex Code** to help with all of it—just describe what you want to buil
 - [Snowflake ML Model Registry](https://docs.snowflake.com/en/developer-guide/snowflake-ml/model-registry/overview)
 - [Snowflake Notebooks](https://docs.snowflake.com/en/user-guide/ui-snowsight/notebooks)
 
-## License
+## ライセンス
 
 Copyright (c) Snowflake Inc. All rights reserved.
 
-The code in this repository is licensed under the Apache 2.0 License.
+このリポジトリのコードは Apache 2.0 ライセンスの下でライセンスされています。

@@ -1,58 +1,57 @@
 -- Copyright 2026 Snowflake Inc.
 -- SPDX-License-Identifier: Apache-2.0
 --
--- Licensed under the Apache License, Version 2.0 (the "License");
--- you may not use this file except in compliance with the License.
--- You may obtain a copy of the License at
+-- Apache License, Version 2.0（「ライセンス」）に基づいてライセンスされています。
+-- ライセンスに準拠しない限り、このファイルを使用することはできません。
+-- ライセンスのコピーは以下から入手できます：
 --
 -- http://www.apache.org/licenses/LICENSE-2.0
 --
--- Unless required by applicable law or agreed to in writing, software
--- distributed under the License is distributed on an "AS IS" BASIS,
--- WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
--- See the License for the specific language governing permissions and
--- limitations under the License.
+-- 適用法で要求されるか、書面で同意されない限り、ライセンスに基づいて
+-- 配布されるソフトウェアは、「現状のまま」で配布され、
+-- 明示または黙示を問わず、いかなる種類の保証または条件も含みません。
+-- 権限と制限については、ライセンスを参照してください。
 
 /*-----------------------------------------------------------------------------
-  FSI AI SQL & Data Science Agent Demo - Teardown Script
+  FSI AI SQL & Data Science Agent デモ - 削除スクリプト
   
-  This script removes all objects created by the demo.
+  このスクリプトはデモで作成されたすべてのオブジェクトを削除します。
   
-  WARNING: This will permanently delete all data and objects!
+  警告: すべてのデータとオブジェクトが完全に削除されます！
   
-  Run this script to clean up after completing the demo.
+  デモ完了後にこのスクリプトを実行してクリーンアップしてください。
 -----------------------------------------------------------------------------*/
 
 USE ROLE FSI_DEMO_ROLE;
 
 -- ============================================================================
--- Drop Snowflake Intelligence Agent
+-- Snowflake Intelligence Agent の削除
 -- ============================================================================
 DROP AGENT IF EXISTS FSI_DEMO_DB.ANALYTICS.QUANTITATIVE_RESEARCH_AGENT;
 
 -- ============================================================================
--- Drop Cortex Search Service
+-- Cortex Search Service の削除
 -- ============================================================================
 DROP CORTEX SEARCH SERVICE IF EXISTS FSI_DEMO_DB.ANALYTICS.DOW_ANALYSTS_SENTIMENT_ANALYSIS;
 
 -- ============================================================================
--- Drop Semantic View
+-- Semantic View の削除
 -- ============================================================================
 DROP SEMANTIC VIEW IF EXISTS FSI_DEMO_DB.ANALYTICS.ANALYST_SENTIMENTS_VIEW;
 
 -- ============================================================================
--- Drop Notebooks
+-- ノートブックの削除
 -- ============================================================================
 DROP NOTEBOOK IF EXISTS FSI_DEMO_DB.ANALYTICS.START_HERE;
 DROP NOTEBOOK IF EXISTS FSI_DEMO_DB.ANALYTICS.TRAIN_ML_MODELS;
 DROP NOTEBOOK IF EXISTS FSI_DEMO_DB.ANALYTICS.CREATE_CORTEX_COMPONENTS;
 
 -- ============================================================================
--- Drop ML Models from Registry (if created)
+-- レジストリからMLモデルを削除（作成されている場合）
 -- ============================================================================
--- Note: Models are named FIS_{YEAR}Q{QUARTER} based on when training ran.
--- Check existing models with: SHOW MODELS IN SCHEMA FSI_DEMO_DB.ANALYTICS;
--- Then drop each one, e.g.:
+-- 注意: モデル名はトレーニング実行時に基づいて FIS_{YEAR}Q{QUARTER} となります。
+-- 既存のモデルは以下で確認: SHOW MODELS IN SCHEMA FSI_DEMO_DB.ANALYTICS;
+-- 各モデルを削除する例:
 -- DROP MODEL IF EXISTS FSI_DEMO_DB.ANALYTICS.FIS_2024Q4;
 -- DROP MODEL IF EXISTS FSI_DEMO_DB.ANALYTICS.FIS_2025Q1;
 -- DROP MODEL IF EXISTS FSI_DEMO_DB.ANALYTICS.FIS_2025Q2;
@@ -60,64 +59,64 @@ DROP NOTEBOOK IF EXISTS FSI_DEMO_DB.ANALYTICS.CREATE_CORTEX_COMPONENTS;
 -- DROP MODEL IF EXISTS FSI_DEMO_DB.ANALYTICS.FIS_2025Q4;
 
 -- ============================================================================
--- Drop Stored Procedures
+-- ストアドプロシージャの削除
 -- ============================================================================
 DROP PROCEDURE IF EXISTS FSI_DEMO_DB.ANALYTICS.GET_TOP_BOTTOM_STOCK_PREDICTIONS(STRING, INTEGER);
 DROP PROCEDURE IF EXISTS FSI_DEMO_DB.ANALYTICS.SEND_EMAIL(VARCHAR, VARCHAR, VARCHAR);
 
 -- ============================================================================
--- Drop Tables
+-- テーブルの削除
 -- ============================================================================
 DROP TABLE IF EXISTS FSI_DEMO_DB.ANALYTICS.FSI_DATA;
 DROP TABLE IF EXISTS FSI_DEMO_DB.ANALYTICS.AI_TRANSCRIPTS_ANALYSTS_SENTIMENTS;
 DROP TABLE IF EXISTS FSI_DEMO_DB.ANALYTICS.UNIQUE_TRANSCRIPTS;
 
 -- ============================================================================
--- Drop Git Repository
+-- Git リポジトリの削除
 -- ============================================================================
 DROP GIT REPOSITORY IF EXISTS FSI_DEMO_DB.ANALYTICS.FSI_DEMO_REPO;
 
 -- ============================================================================
--- Drop Stages (none currently used)
+-- ステージの削除（現在使用なし）
 -- ============================================================================
--- Note: SEMANTIC_MODELS stage removed - using semantic view instead
+-- 注意: SEMANTIC_MODELS ステージは削除済み - 代わりに Semantic View を使用
 
 -- ============================================================================
--- Drop Notification Integration (requires ACCOUNTADMIN)
+-- 通知インテグレーションの削除（ACCOUNTADMIN が必要）
 -- ============================================================================
 USE ROLE ACCOUNTADMIN;
 DROP NOTIFICATION INTEGRATION IF EXISTS EMAIL_INTEGRATION;
 
 -- ============================================================================
--- Drop Git API Integration
+-- Git API インテグレーションの削除
 -- ============================================================================
 DROP API INTEGRATION IF EXISTS GIT_HTTPS_API;
 
 -- ============================================================================
--- Drop Database
+-- データベースの削除
 -- ============================================================================
 USE ROLE FSI_DEMO_ROLE;
 DROP DATABASE IF EXISTS FSI_DEMO_DB;
 
 -- ============================================================================
--- Drop Warehouse
+-- ウェアハウスの削除
 -- ============================================================================
 DROP WAREHOUSE IF EXISTS FSI_DEMO_WH;
 
 -- ============================================================================
--- Drop Compute Pool (requires ACCOUNTADMIN)
+-- コンピュートプールの削除（ACCOUNTADMIN が必要）
 -- ============================================================================
 USE ROLE ACCOUNTADMIN;
 DROP COMPUTE POOL IF EXISTS FSI_DEMO_COMPUTE_POOL;
 
 -- ============================================================================
--- Drop Snowflake Intelligence Object
+-- Snowflake Intelligence オブジェクトの削除
 -- ============================================================================
 DROP SNOWFLAKE INTELLIGENCE IF EXISTS SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT;
 
 -- ============================================================================
--- Drop Demo Role
+-- デモロールの削除
 -- ============================================================================
 DROP ROLE IF EXISTS FSI_DEMO_ROLE;
 
-SELECT 'Teardown completed successfully!' AS STATUS;
+SELECT '削除が正常に完了しました！' AS STATUS;
