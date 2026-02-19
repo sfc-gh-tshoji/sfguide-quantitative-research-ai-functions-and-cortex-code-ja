@@ -127,15 +127,15 @@ session.use_schema("ANALYTICS")
 #### プロンプト 1: AI センチメント抽出
 
 ```
-Using FSI_DEMO_DB.ANALYTICS.UNIQUE_TRANSCRIPTS table, extract analyst sentiment from earnings call transcripts.
+FSI_DEMO_DB.ANALYTICS.UNIQUE_TRANSCRIPTS テーブルを使用して、決算説明会トランスクリプトからアナリストセンチメントを抽出してください。
 
-Use AI_COMPLETE with claude-4-sonnet to analyze each transcript. Focus ONLY on analyst questions and tone (ignore management remarks). Score sentiment on 1-10 scale where 1=extremely negative, 5=neutral, 10=extremely positive.
+AI_COMPLETE と claude-4-sonnet を使用して各トランスクリプトを分析します。アナリストの質問とトーンのみに焦点を当て（経営陣の発言は無視）、センチメントを1-10スケールでスコアリングしてください（1=極めてネガティブ、5=中立、10=極めてポジティブ）。
 
-Return JSON with: score (1-10), reason (brief explanation), analyst_count (number of unique analysts).
+JSONで以下を返してください: score (1-10)、reason (簡単な説明)、analyst_count (ユニークアナリスト数)。
 
-Insert results into AI_TRANSCRIPTS_ANALYSTS_SENTIMENTS table with columns: PRIMARY_TICKER, EVENT_TIMESTAMP, EVENT_TYPE, CREATED_AT, SENTIMENT_SCORE, UNIQUE_ANALYST_COUNT, SENTIMENT_REASON.
+結果を AI_TRANSCRIPTS_ANALYSTS_SENTIMENTS テーブルに挿入してください。カラム: PRIMARY_TICKER, EVENT_TIMESTAMP, EVENT_TYPE, CREATED_AT, SENTIMENT_SCORE, UNIQUE_ANALYST_COUNT, SENTIMENT_REASON。
 
-Filter out events with analyst_count <= 1.
+analyst_count <= 1 のイベントは除外してください。
 ```
 
 ![プロンプト 1: AI センチメント抽出](assets/prompt-1.gif)
@@ -145,21 +145,21 @@ Filter out events with analyst_count <= 1.
 #### プロンプト 2: ML モデルの学習と登録
 
 ```
-Using FSI_DEMO_DB.ANALYTICS.FSI_DATA table which has columns: ticker, date, price, r_1, r_5_1, r_10_5, r_21_10, r_63_21, and y (target).
+FSI_DEMO_DB.ANALYTICS.FSI_DATA テーブルを使用します。カラム: ticker, date, price, r_1, r_5_1, r_10_5, r_21_10, r_63_21, y (ターゲット)。
 
-Train a quarterly walk-forward LightGBM regression model:
-- Features: r_1, r_5_1, r_10_5, r_21_10, r_63_21
-- Target: y (5-day forward return)
-- For each test quarter Q: train on quarters < Q-2, validate on Q-2 and Q-1, test on Q
-- Use L2 metric with early stopping (200 rounds patience)
-- Hyperparameter grid: learning_rate [0.03, 0.05, 0.10], num_leaves [31, 63]
+四半期ごとのウォークフォワード LightGBM 回帰モデルを学習してください:
+- 特徴量: r_1, r_5_1, r_10_5, r_21_10, r_63_21
+- ターゲット: y (5日先リターン)
+- 各テスト四半期 Q について: Q-2 より前の四半期で学習、Q-2 と Q-1 で検証、Q でテスト
+- L2 メトリクスとアーリーストッピング（200ラウンド忍耐）を使用
+- ハイパーパラメータグリッド: learning_rate [0.03, 0.05, 0.10], num_leaves [31, 63]
 
-Register each quarter's best model to Snowflake Model Registry as FIS_{quarter} (e.g., FIS_2024Q3, FIS_2025Q1) with:
+各四半期のベストモデルを Snowflake Model Registry に FIS_{quarter} として登録（例: FIS_2024Q3, FIS_2025Q1）:
 - version_name="v1"
-- sample_input_data from training data (100 rows)
+- sample_input_data は学習データから（100行）
 - options={"relax_version": False, "target_methods": ["predict"], "method_options": {"predict": {"case_sensitive": True}}}
 
-Do NOT pass metrics to log_model. Do NOT use target_methods as a separate parameter.
+メトリクスを log_model に渡さないでください。target_methods を別パラメータとして使用しないでください。
 ```
 
 ![プロンプト 2: ML モデルの学習と登録](assets/prompt-2.png)
@@ -169,13 +169,13 @@ Do NOT pass metrics to log_model. Do NOT use target_methods as a separate parame
 #### プロンプト 3: Cortex Search Service の作成
 
 ```
-Create a Cortex Search Service named DOW_ANALYSTS_SENTIMENT_ANALYSIS in FSI_DEMO_DB.ANALYTICS schema.
+FSI_DEMO_DB.ANALYTICS スキーマに DOW_ANALYSTS_SENTIMENT_ANALYSIS という名前の Cortex Search Service を作成してください。
 
-Source table: AI_TRANSCRIPTS_ANALYSTS_SENTIMENTS
-Search column: SENTIMENT_REASON
-Columns to return: PRIMARY_TICKER, EVENT_TIMESTAMP, SENTIMENT_SCORE, UNIQUE_ANALYST_COUNT, SENTIMENT_REASON
-Warehouse: FSI_DEMO_WH
-Target lag: 1 day
+ソーステーブル: AI_TRANSCRIPTS_ANALYSTS_SENTIMENTS
+検索カラム: SENTIMENT_REASON
+返却カラム: PRIMARY_TICKER, EVENT_TIMESTAMP, SENTIMENT_SCORE, UNIQUE_ANALYST_COUNT, SENTIMENT_REASON
+ウェアハウス: FSI_DEMO_WH
+ターゲットラグ: 1日
 ```
 
 ![プロンプト 3: Cortex Search Service の作成](assets/prompt-3.png)
@@ -185,20 +185,20 @@ Target lag: 1 day
 #### プロンプト 4: Semantic View の作成
 
 ```
-Create a Semantic View named ANALYST_SENTIMENTS_VIEW in FSI_DEMO_DB.ANALYTICS schema for natural language queries on analyst sentiment data.
+FSI_DEMO_DB.ANALYTICS スキーマに ANALYST_SENTIMENTS_VIEW という名前の Semantic View を作成してください。アナリストセンチメントデータに対する自然言語クエリ用です。
 
-Source table: AI_TRANSCRIPTS_ANALYSTS_SENTIMENTS
+ソーステーブル: AI_TRANSCRIPTS_ANALYSTS_SENTIMENTS
 
-Dimensions:
-- PRIMARY_TICKER: Company stock ticker symbol
-- EVENT_TIMESTAMP: Date and time of the earnings call
-- EVENT_TYPE: Type of event (Earnings Call)
+ディメンション:
+- PRIMARY_TICKER: 企業の株式ティッカーシンボル
+- EVENT_TIMESTAMP: 決算説明会の日時
+- EVENT_TYPE: イベントタイプ（決算説明会）
 
-Measures:
-- SENTIMENT_SCORE: Analyst sentiment rating from 1-10
-- UNIQUE_ANALYST_COUNT: Number of unique analysts participating
+メジャー:
+- SENTIMENT_SCORE: 1-10のアナリストセンチメント評価
+- UNIQUE_ANALYST_COUNT: 参加したユニークアナリスト数
 
-Include SENTIMENT_REASON as descriptive text field for qualitative insights.
+定性的インサイトのための記述テキストフィールドとして SENTIMENT_REASON を含めてください。
 ```
 
 ![プロンプト 4: Semantic View の作成](assets/prompt-4.png)
@@ -208,39 +208,39 @@ Include SENTIMENT_REASON as descriptive text field for qualitative insights.
 #### プロンプト 5: エージェントの作成
 
 ```
-Create a Cortex Agent named QUANTITATIVE_RESEARCH_AGENT in FSI_DEMO_DB.ANALYTICS schema.
+FSI_DEMO_DB.ANALYTICS スキーマに QUANTITATIVE_RESEARCH_AGENT という名前の Cortex Agent を作成してください。
 
-Display name: "Quantitative Research Agent"
+表示名: "Quantitative Research Agent"
 
-Instructions/System prompt:
-"You are a quantitative research assistant specializing in Dow Jones 30 stock analysis. You help users with:
-1. ML-based stock predictions - Use GET_TOP_BOTTOM_STOCK_PREDICTIONS to get top/bottom ranked stocks by predicted 5-day returns
-2. Analyst sentiment queries - Query structured sentiment data (scores, analyst counts) via the semantic view
-3. Sentiment insights - Search earnings call transcripts for qualitative analyst commentary
-4. Email alerts - Send portfolio recommendations or research summaries via email
+インストラクション/システムプロンプト:
+"あなたはダウジョーンズ30銘柄の分析を専門とするクオンツリサーチアシスタントです。以下をサポートします:
+1. MLベースの株価予測 - GET_TOP_BOTTOM_STOCK_PREDICTIONS を使用して予測5日リターンでランク付けされたトップ/ボトム銘柄を取得
+2. アナリストセンチメントクエリ - セマンティックビューを介して構造化センチメントデータ（スコア、アナリスト数）をクエリ
+3. センチメントインサイト - 決算説明会トランスクリプトで定性的なアナリストコメンタリーを検索
+4. メールアラート - メールでポートフォリオ推奨やリサーチサマリーを送信
 
-When asked about stock picks or predictions, always use the ML prediction tool first. When asked about analyst opinions or sentiment, combine both the semantic view (for scores) and search service (for reasoning). Be concise and data-driven in responses."
+株式選択や予測について聞かれた場合は、まずML予測ツールを使用してください。アナリストの意見やセンチメントについて聞かれた場合は、セマンティックビュー（スコア用）と検索サービス（理由用）の両方を組み合わせてください。回答は簡潔でデータドリブンにしてください。"
 
-Sample questions:
-- "What are the top 5 stocks to buy this week based on ML predictions?"
-- "Which stocks have the most positive analyst sentiment?"
-- "What did analysts say about Apple's last earnings call?"
-- "Show me stocks with bullish sentiment but negative ML predictions"
-- "Email me a summary of this week's top stock picks"
+サンプル質問:
+- "ML予測に基づく今週のトップ5銘柄は？"
+- "アナリストセンチメントが最もポジティブな銘柄は？"
+- "Apple の直近の決算説明会でアナリストは何と言っていた？"
+- "センチメントは強気だがML予測がネガティブな銘柄を見せて"
+- "今週のトップ銘柄のサマリーをメールして"
 
-Tools to include (use SQL CREATE AGENT syntax with tool_resources array):
-1. Semantic view tool: type='semantic_view', identifier='FSI_DEMO_DB.ANALYTICS.ANALYST_SENTIMENTS_VIEW'
-2. Cortex search tool: type='cortex_search', identifier='FSI_DEMO_DB.ANALYTICS.DOW_ANALYSTS_SENTIMENT_ANALYSIS'
-3. Procedure tool (ML predictions): type='procedure', identifier='FSI_DEMO_DB.ANALYTICS.GET_TOP_BOTTOM_STOCK_PREDICTIONS', execution_environment='sandbox'
-   - Parameters: MODEL_NAME (STRING, optional - auto-detects latest model if NULL), TOP_N (INTEGER, default 5 - returns both top N and bottom N stocks)
-   - Returns ranked stocks by predicted 5-day forward returns
-4. Procedure tool (email): type='procedure', identifier='FSI_DEMO_DB.ANALYTICS.SEND_EMAIL', execution_environment='sandbox'
-   - Parameters: RECIPIENT_EMAIL (VARCHAR, optional - uses current user's email if NULL), SUBJECT (VARCHAR), BODY (VARCHAR)
+含めるツール（SQL CREATE AGENT 構文で tool_resources 配列を使用）:
+1. セマンティックビューツール: type='semantic_view', identifier='FSI_DEMO_DB.ANALYTICS.ANALYST_SENTIMENTS_VIEW'
+2. Cortex 検索ツール: type='cortex_search', identifier='FSI_DEMO_DB.ANALYTICS.DOW_ANALYSTS_SENTIMENT_ANALYSIS'
+3. プロシージャツール（ML予測）: type='procedure', identifier='FSI_DEMO_DB.ANALYTICS.GET_TOP_BOTTOM_STOCK_PREDICTIONS', execution_environment='sandbox'
+   - パラメータ: MODEL_NAME (STRING, オプション - NULL の場合は最新モデルを自動検出), TOP_N (INTEGER, デフォルト 5 - トップ N とボトム N の両方を返却)
+   - 予測5日先リターンでランク付けされた銘柄を返却
+4. プロシージャツール（メール）: type='procedure', identifier='FSI_DEMO_DB.ANALYTICS.SEND_EMAIL', execution_environment='sandbox'
+   - パラメータ: RECIPIENT_EMAIL (VARCHAR, オプション - NULL の場合は現在のユーザーのメールを使用), SUBJECT (VARCHAR), BODY (VARCHAR)
 
-IMPORTANT: For procedure tools, you must include execution_environment='sandbox' in the tool_resources.
+重要: プロシージャツールには tool_resources に execution_environment='sandbox' を含める必要があります。
 
-Model: claude-3-5-sonnet
-Warehouse: FSI_DEMO_WH
+モデル: claude-3-5-sonnet
+ウェアハウス: FSI_DEMO_WH
 ```
 
 ![プロンプト 5: エージェントの作成](assets/prompt-5.png)
@@ -250,7 +250,7 @@ Warehouse: FSI_DEMO_WH
 #### プロンプト 6: Snowflake Intelligence への登録
 
 ```
-Register the agent FSI_DEMO_DB.ANALYTICS.QUANTITATIVE_RESEARCH_AGENT with Snowflake Intelligence object SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT so users can interact with it conversationally.
+エージェント FSI_DEMO_DB.ANALYTICS.QUANTITATIVE_RESEARCH_AGENT を Snowflake Intelligence オブジェクト SNOWFLAKE_INTELLIGENCE_OBJECT_DEFAULT に登録して、ユーザーが会話形式でやり取りできるようにしてください。
 ```
 
 ---
@@ -298,18 +298,18 @@ Register the agent FSI_DEMO_DB.ANALYTICS.QUANTITATIVE_RESEARCH_AGENT with Snowfl
 > **注意:** これは `setup.sql` で既に実行されており、事前計算された特徴量を持つ `FSI_DATA` テーブルが作成されています。特徴量エンジニアリングプロセスを理解または再作成したい場合にこのプロンプトを使用してください。
 
 ```
-Using SNOWFLAKE_PUBLIC_DATA_FREE.PUBLIC_DATA_FREE.STOCK_PRICE_TIMESERIES for Dow Jones 30 stocks (MMM, AXP, AMGN, AMZN, AAPL, BA, CAT, CVX, CSCO, KO, DIS, GS, HD, HON, IBM, JNJ, JPM, MCD, MRK, MSFT, NKE, PG, RTX, CRM, SHW, TRV, UNH, V, WMT, NVDA).
+SNOWFLAKE_PUBLIC_DATA_FREE.PUBLIC_DATA_FREE.STOCK_PRICE_TIMESERIES を使用して、ダウジョーンズ30銘柄（MMM, AXP, AMGN, AMZN, AAPL, BA, CAT, CVX, CSCO, KO, DIS, GS, HD, HON, IBM, JNJ, JPM, MCD, MRK, MSFT, NKE, PG, RTX, CRM, SHW, TRV, UNH, V, WMT, NVDA）のデータを処理してください。
 
-Construct momentum features using log returns:
-- r_1: today's return
-- r_5_1: return from t-4 to t-1
-- r_10_5: return from t-9 to t-5
-- r_21_10: return from t-20 to t-11
-- r_63_21: return from t-62 to t-21
+対数リターンを使用してモメンタム特徴量を構築:
+- r_1: 当日のリターン
+- r_5_1: t-4 から t-1 までのリターン
+- r_10_5: t-9 から t-5 までのリターン
+- r_21_10: t-20 から t-11 までのリターン
+- r_63_21: t-62 から t-21 までのリターン
 
-Construct target variable y: future return from t+2 to t+6.
+ターゲット変数 y を構築: t+2 から t+6 までの将来リターン。
 
-Keep as panel data with ticker as a column.
+ティッカーをカラムとしてパネルデータとして保持してください。
 ```
 </details>
 
@@ -317,20 +317,20 @@ Keep as panel data with ticker as a column.
 <summary><b>オプションプロンプト B: バックテスト戦略</b></summary>
 
 ```
-Test if the ML strategy works starting 2021.
+2021年以降でML戦略が機能するかテストしてください。
 
-Portfolio construction:
-- Generate forecasts on Tuesdays
-- At Wednesday close, go long top-5 and short bottom-5 by predicted return (equal weight)
-- Hold through Thursday to next Wednesday (the t+2..t+6 window)
-- Transaction cost: 3.0 bps one-way via weekly turnover
+ポートフォリオ構築:
+- 火曜日に予測を生成
+- 水曜日のクローズ時に、予測リターンでトップ5をロング、ボトム5をショート（等ウェイト）
+- 木曜日から翌水曜日まで保持（t+2..t+6 ウィンドウ）
+- 取引コスト: 週次ターンオーバーで片道3.0bps
 
-Show metrics:
-- Information Ratio (before/after costs)
-- Max drawdown
-- Calmar ratio
+メトリクスを表示:
+- インフォメーションレシオ（コスト前/後）
+- 最大ドローダウン
+- カルマーレシオ
 
-Plot equity curves for before and after costs.
+コスト前後のエクイティカーブをプロットしてください。
 ```
 </details>
 
@@ -338,22 +338,22 @@ Plot equity curves for before and after costs.
 <summary><b>オプションプロンプト C: センチメント-リターン回帰分析</b></summary>
 
 ```
-Analyze the relationship between analyst sentiment and stock returns.
+アナリストセンチメントと株式リターンの関係を分析してください。
 
-Merge sentiment data with price data using merge_asof (forward direction).
+merge_asof（forward方向）を使用してセンチメントデータと価格データをマージ。
 
-Create:
-- 1D return: reaction during earnings call
-- 3D return: return_lead_1 + return_lead_2 + return_lead_3 (post-earnings drift)
+作成:
+- 1D リターン: 決算説明会中の反応
+- 3D リターン: return_lead_1 + return_lead_2 + return_lead_3（決算後ドリフト）
 
-Run OLS regression: return ~ sentiment_score
-Winsorize returns at 1st/99th percentiles.
+OLS回帰を実行: return ~ sentiment_score
+リターンを1パーセンタイル/99パーセンタイルでウィンソライズ。
 
-Create scatter plots showing:
-- Sentiment Score vs 1D Return with OLS fit line, β, t-stat
-- Sentiment Score vs 3D Return with OLS fit line, β, t-stat
+散布図を作成:
+- センチメントスコア vs 1D リターン（OLS回帰線、β、t統計量付き）
+- センチメントスコア vs 3D リターン（OLS回帰線、β、t統計量付き）
 
-Repeat analysis using sentiment_change (vs previous earnings call).
+sentiment_change（前回の決算説明会との比較）を使用して分析を繰り返してください。
 ```
 </details>
 
